@@ -1,0 +1,19 @@
+deploy:
+  force: false
+dispatch:
+  events:
+    - name: 冥王星代码库数据库定义变更订阅
+      type: WEBHOOK
+      id: nautilus_mwxing_db_def_changed_notification
+      event: WEBHOOK_EVENT.INTERNAL
+      filters:
+        - name: webhook
+          value: event.internal
+        - name: category
+          value: github_app
+        - name: repository
+          value: XJ-GTD/GTD2
+        - name: modified
+          type: array_regex
+          value: .*\/db\/.+.yml
+      flow: flow_mwxing_db_codegen
