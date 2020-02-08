@@ -17,3 +17,4 @@ dispatch:
           type: array_regex
           value: .*\/db\/.+.yml
       flow: flow_mwxing_db_codegen
+flows:
