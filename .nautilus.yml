@@ -18,3 +18,64 @@ dispatch:
           value: .*\/db\/.+.yml
       flow: flow_mwxing_db_codegen
 flows:
+  - flow_mwxing_db_codegen:
+      name: 数据库定义转脚本代码处理流
+      trigger: flow_mwxing_db_codegen
+      hostname: flow_dbgen
+      parameters:
+        - github
+        - event
+      follows:
+        - name: 获取数据库定义文件
+          trigger: github_client
+          parameters:
+            - method;fetch
+            - files_match;.*\/db\/.+.yml
+          outputs:
+            - result
+          next:
+            - name: 转换代码前处理
+              trigger: translate_db_def_to_codegen
+              parameters:
+                - datasource;$.parent.outputs
+              outputs:
+                - cleaned
+              next:
+                - name: 代码转换
+                  trigger: mwxing_db_def_codegen
+                  parameters:
+                    - define;$.parent.outputs.cleaned.dbdef
+                  outputs:
+                    - result
+                  next:
+                    - name: 上传数据关联代码
+                      trigger: github_client
+                      parameter:
+                        - method;push
+                        - ref;branch_refs
+                        - path;repository_path
+                        - file;file_path
+                      outputs:
+                        - result
+executors:
+  - translate_db_def_to_codegen:
+      name: 转换代码前处理
+      hostname: nashorn_dbgen
+      container: acj
+      scriptengine: Nashorn
+      clean: |
+        function clean(datasource) {
+          var result = {};
+
+          print('Start Nashorn Javascript processing...');
+          print(datasource);
+
+          // filter source code here start
+          var input = JSON.parse(datasource);
+
+          var standardnext = {};
+          //print(JSON.stringify(standardnext));
+
+          // filter source code here end
+          return JSON.stringify(standardnext);
+        }
